@@ -1,0 +1,27 @@
+{
+  "domains": [
+    {"id": "d1", "name": "chalkfourspy.xyz", "type": "domain"},
+    {"id": "d2", "name": "currentglobalnews.site", "type": "domain"},
+    {"id": "d3", "name": "unblockboomsalad.pics", "type": "domain"},
+    {"id": "d4", "name": "newscoverage24.news", "type": "domain"},
+    {"id": "d5", "name": "khakiyowlanti.eu", "type": "domain"},
+    {"id": "d6", "name": "slickodd.pics", "type": "domain"}
+  ],
+  "entities": [
+    {"id": "e1", "name": "Beget LLC", "type": "hosting", "connections": ["d1", "d2", "d3"]},
+    {"id": "e2", "name": "HZ Hosting Ltd", "type": "hosting", "connections": ["d2", "d4"]},
+    {"id": "e3", "name": "Cloudflare", "type": "service", "connections": ["d1", "d3", "d6"]},
+    {"id": "e4", "name": "PDR Ltd", "type": "registrar", "connections": ["d2", "d3", "d5", "d6"]},
+    {"id": "e5", "name": "St Petersburg Infrastructure", "type": "location", "connections": ["d1", "d2", "d3"]},
+    {"id": "e6", "name": "Amsterdam Gateway", "type": "location", "connections": ["d2", "d4"]},
+    {"id": "e7", "name": "Mail.ru Services", "type": "service", "connections": ["d2", "d3"]},
+    {"id": "e8", "name": "AmazonS3", "type": "hosting", "connections": ["d1"]},
+    {"id": "e9", "name": "Russia IP Space", "type": "network", "connections": ["d1", "d2", "d3"]},
+    {"id": "e10", "name": "Netherlands IP Space", "type": "network", "connections": ["d2", "d4"]},
+    {"id": "e11", "name": "Quantum AI Content", "type": "content", "connections": ["d2", "d4"]},
+    {"id": "e12", "name": "Canadian Political Content", "type": "content", "connections": ["d2", "d4"]},
+    {"id": "e13", "name": "Security Warning Pages", "type": "content", "connections": ["d1", "d3", "d6"]},
+    {"id": "e14", "name": "Shared SSL Certificates", "type": "security", "connections": ["d1", "d2", "d3", "d6"]},
+    {"id": "e15", "name": "Common Backend Scripts", "type": "technical", "connections": ["d2", "d3", "d4"]}
+  ]
+}
