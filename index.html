@@ -25,10 +25,10 @@
             stroke-opacity: 0.6;
             stroke-width: 2px;
         }
-        .website-node {
+        .domain-node {
             fill: #ff0000;
         }
-        .finding-node {
+        .entity-node {
             fill: #0000ff;
         }
         .node text {
@@ -44,21 +44,23 @@
         // Load the network data from JSON file
         d3.json('data.json').then(function(data) {
             // Create nodes array
-            const websites = data.websites.map(w => ({ id: w.id, name: w.name, group: "website" }));
-            const findings = data.findings.map(f => ({ id: f.id, name: f.name, group: "finding" }));
-            const nodes = [...websites, ...findings];
+            const domains = data.domains.map(d => ({ id: d.id, name: d.name, group: "domain" }));
+            const entities = data.entities.map(e => ({ id: e.id, name: e.name, group: "entity" }));
+            const nodes = [...domains, ...entities];
 
             // Create links array
-            const links = data.connections.map(conn => ({
-                source: conn.websiteId,
-                target: conn.findingId
-            }));
+            const links = data.entities.flatMap(entity =>
+                entity.connections.map(domainId => ({
+                    source: entity.id,
+                    target: domainId
+                }))
+            );
 
             // Set up visualization dimensions
             const width = window.innerWidth;
             const height = window.innerHeight;
-            const websiteX = width / 3;
-            const findingX = (2 * width) / 3;
+            const domainX = width / 3;
+            const entityX = (2 * width) / 3;
 
             // Create SVG container
             const svg = d3.select("#visualization")
@@ -67,14 +69,14 @@
                 .attr("height", height);
 
             // Position nodes vertically based on index
-            websites.forEach((node, i) => {
-                node.x = websiteX;
-                node.y = (height / websites.length) * (i + 0.5);
+            domains.forEach((node, i) => {
+                node.x = domainX;
+                node.y = (height / domains.length) * (i + 0.5);
             });
 
-            findings.forEach((node, i) => {
-                node.x = findingX;
-                node.y = (height / findings.length) * (i + 0.5);
+            entities.forEach((node, i) => {
+                node.x = entityX;
+                node.y = (height / entities.length) * (i + 0.5);
             });
 
             // Draw links
@@ -98,7 +100,7 @@
 
             node.append("circle")
                 .attr("r", 8)
-                .attr("class", d => d.group === "website" ? "website-node" : "finding-node");
+                .attr("class", d => d.group === "domain" ? "domain-node" : "entity-node");
 
             node.append("text")
                 .attr("dx", 10)
