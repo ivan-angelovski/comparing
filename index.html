@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bipartite Graph Visualization</title>
+    <title>Sankey Bipartite Graph</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,23 +18,20 @@
             width: 100vw;
             height: 100vh;
         }
-        .node {
-            cursor: pointer;
-        }
         .link {
-            stroke: #999;
-            stroke-opacity: 0.6;
-            stroke-width: 2px;
+            fill: none;
+            stroke-opacity: 0.5;
         }
-        .domain-node {
-            fill: #ff0000;
-        }
-        .entity-node {
-            fill: #0000ff;
+        .node rect {
+            stroke: #000;
+            stroke-width: 1px;
         }
         .node text {
             font-size: 12px;
             fill: #333;
+        }
+        .node:hover rect {
+            fill: orange;
         }
     </style>
 </head>
@@ -43,24 +41,35 @@
     <script>
         // Load the network data from JSON file
         d3.json('data.json').then(function(data) {
-            // Create nodes array
-            const domains = data.domains.map(d => ({ id: d.id, name: d.name, group: "domain" }));
-            const entities = data.entities.map(e => ({ id: e.id, name: e.name, group: "entity" }));
-            const nodes = [...domains, ...entities];
+            // Transform data into Sankey-friendly format
+            const nodes = [
+                ...data.domains.map(d => ({ id: d.id, name: d.name })),
+                ...data.entities.map(e => ({ id: e.id, name: e.name }))
+            ];
 
-            // Create links array
             const links = data.entities.flatMap(entity =>
                 entity.connections.map(domainId => ({
                     source: entity.id,
-                    target: domainId
+                    target: domainId,
+                    value: 1
                 }))
             );
+
+            const sankeyData = {
+                nodes: nodes.map((n, i) => ({ ...n, index: i })),
+                links: links
+            };
 
             // Set up visualization dimensions
             const width = window.innerWidth;
             const height = window.innerHeight;
-            const domainX = width / 3;
-            const entityX = (2 * width) / 3;
+
+            const sankey = d3.sankey()
+                .nodeWidth(20)
+                .nodePadding(10)
+                .size([width, height]);
+
+            const graph = sankey(sankeyData);
 
             // Create SVG container
             const svg = d3.select("#visualization")
@@ -68,43 +77,45 @@
                 .attr("width", width)
                 .attr("height", height);
 
-            // Position nodes vertically based on index
-            domains.forEach((node, i) => {
-                node.x = domainX;
-                node.y = (height / domains.length) * (i + 0.5);
-            });
-
-            entities.forEach((node, i) => {
-                node.x = entityX;
-                node.y = (height / entities.length) * (i + 0.5);
-            });
-
             // Draw links
-            svg.selectAll(".link")
-                .data(links)
+            svg.append("g")
+                .selectAll(".link")
+                .data(graph.links)
                 .enter()
-                .append("line")
+                .append("path")
                 .attr("class", "link")
-                .attr("x1", d => nodes.find(n => n.id === d.source).x)
-                .attr("y1", d => nodes.find(n => n.id === d.source).y)
-                .attr("x2", d => nodes.find(n => n.id === d.target).x)
-                .attr("y2", d => nodes.find(n => n.id === d.target).y);
+                .attr("d", d3.sankeyLinkHorizontal())
+                .attr("stroke", d => d3.interpolateBlues(Math.random()))
+                .attr("stroke-width", d => Math.max(1, d.width));
 
             // Draw nodes
-            const node = svg.selectAll(".node")
-                .data(nodes)
+            const node = svg.append("g")
+                .selectAll(".node")
+                .data(graph.nodes)
                 .enter()
                 .append("g")
                 .attr("class", "node")
-                .attr("transform", d => `translate(${d.x}, ${d.y})`);
+                .attr("transform", d => `translate(${d.x0},${d.y0})`)
+                .on("mouseover", (event, d) => {
+                    svg.selectAll(".link")
+                        .attr("stroke-opacity", link => link.source === d || link.target === d ? 1 : 0.1);
+                })
+                .on("mouseout", () => {
+                    svg.selectAll(".link").attr("stroke-opacity", 0.5);
+                });
 
-            node.append("circle")
-                .attr("r", 8)
-                .attr("class", d => d.group === "domain" ? "domain-node" : "entity-node");
+            node.append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("height", d => d.y1 - d.y0)
+                .attr("width", sankey.nodeWidth())
+                .attr("fill", d => d3.interpolateCool(Math.random()));
 
             node.append("text")
-                .attr("dx", 10)
-                .attr("dy", 4)
+                .attr("x", d => d.x0 < width / 2 ? sankey.nodeWidth() + 6 : -6)
+                .attr("y", d => (d.y1 - d.y0) / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
                 .text(d => d.name);
         });
     </script>
