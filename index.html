@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Force-Directed Graph</title>
+    <title>Network Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -29,9 +29,13 @@
             fill: orange;
         }
         .node text {
-            font-size: 10px;
+            font-size: 12px;
             pointer-events: none;
             fill: #333;
+        }
+        .highlighted {
+            stroke-width: 3px;
+            stroke: #ff4500; /* Orange for highlighted links */
         }
     </style>
 </head>
@@ -107,6 +111,12 @@
             .attr("dy", 5)
             .text(d => d.name);
 
+        // Position nodes distinctly: domains on the left, entities on the right
+        nodes.forEach((node, index) => {
+            node.x = node.group === "domain" ? 150 : width - 150;
+            node.y = (index + 1) * (height / (nodes.length + 1));
+        });
+
         // Update the positions of links and nodes
         simulation.on("tick", () => {
             link
@@ -117,6 +127,14 @@
 
             node
                 .attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+
+        // Highlighting function for hover events
+        node.on("mouseover", (event, d) => {
+            svg.selectAll(".link")
+                .classed("highlighted", link => link.source === d || link.target === d);
+        }).on("mouseout", () => {
+            svg.selectAll(".link").classed("highlighted", false);
         });
 
         // Dragging functions
