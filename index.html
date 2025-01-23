@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Domain Relationship Analysis</title>
+    <title>Bipartite Graph Visualization</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -25,11 +25,11 @@
             stroke-opacity: 0.6;
             stroke-width: 2px;
         }
-        .domain-node {
+        .website-node {
             fill: #ff0000;
         }
-        .entity-node {
-            fill: #000000;
+        .finding-node {
+            fill: #0000ff;
         }
         .node text {
             font-size: 12px;
@@ -44,23 +44,21 @@
         // Load the network data from JSON file
         d3.json('data.json').then(function(data) {
             // Create nodes array
-            const nodes = [
-                ...data.domains.map(d => ({...d, group: 1})),
-                ...data.entities.map(e => ({...e, group: 2}))
-            ];
+            const websites = data.websites.map(w => ({ id: w.id, name: w.name, group: "website" }));
+            const findings = data.findings.map(f => ({ id: f.id, name: f.name, group: "finding" }));
+            const nodes = [...websites, ...findings];
 
             // Create links array
-            const links = data.entities.flatMap(entity =>
-                entity.connections.map(domainId => ({
-                    source: entity.id,
-                    target: domainId,
-                    value: 1
-                }))
-            );
+            const links = data.connections.map(conn => ({
+                source: conn.websiteId,
+                target: conn.findingId
+            }));
 
             // Set up visualization dimensions
             const width = window.innerWidth;
             const height = window.innerHeight;
+            const websiteX = width / 3;
+            const findingX = (2 * width) / 3;
 
             // Create SVG container
             const svg = d3.select("#visualization")
@@ -68,45 +66,44 @@
                 .attr("width", width)
                 .attr("height", height);
 
-            // Create a hierarchical layout
-            const root = d3.stratify()
-                .id(d => d.id)
-                .parentId(d => d.parentId)([
-                    { id: "root", parentId: null, name: "Root" },
-                    ...data.domains.map(d => ({ id: d.id, parentId: "root", name: d.name })),
-                    ...data.entities.map(e => ({ id: e.id, parentId: e.connections[0], name: e.name }))
-                ]);
+            // Position nodes vertically based on index
+            websites.forEach((node, i) => {
+                node.x = websiteX;
+                node.y = (height / websites.length) * (i + 0.5);
+            });
 
-            const treeLayout = d3.tree().size([width, height - 200]);
-            treeLayout(root);
+            findings.forEach((node, i) => {
+                node.x = findingX;
+                node.y = (height / findings.length) * (i + 0.5);
+            });
 
             // Draw links
             svg.selectAll(".link")
-                .data(root.links())
+                .data(links)
                 .enter()
                 .append("line")
                 .attr("class", "link")
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+                .attr("x1", d => nodes.find(n => n.id === d.source).x)
+                .attr("y1", d => nodes.find(n => n.id === d.source).y)
+                .attr("x2", d => nodes.find(n => n.id === d.target).x)
+                .attr("y2", d => nodes.find(n => n.id === d.target).y);
 
             // Draw nodes
             const node = svg.selectAll(".node")
-                .data(root.descendants())
+                .data(nodes)
                 .enter()
                 .append("g")
                 .attr("class", "node")
                 .attr("transform", d => `translate(${d.x}, ${d.y})`);
 
             node.append("circle")
-                .attr("r", 6)
-                .attr("class", d => d.depth === 1 ? "domain-node" : "entity-node");
+                .attr("r", 8)
+                .attr("class", d => d.group === "website" ? "website-node" : "finding-node");
 
             node.append("text")
-                .attr("dx", 8)
+                .attr("dx", 10)
                 .attr("dy", 4)
-                .text(d => d.data.name);
+                .text(d => d.name);
         });
     </script>
 </body>
