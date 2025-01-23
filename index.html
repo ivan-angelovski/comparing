@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Sankey Bipartite Graph</title>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sankey Bipartite Graph</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
     <style>
@@ -117,4 +117,12 @@
                 .attr("fill", d => d3.interpolateCool(Math.random()));
 
             node.append("text")
-                .attr("x", d => d.x0 < width / 2 ? sankey.nodeWidth() +
+                .attr("x", d => d.x0 < width / 2 ? sankey.nodeWidth() + 5 : -5)
+                .attr("y", d => (d.y1 + d.y0) / 2)
+                .attr("dy", ".35em")
+                .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+                .text(d => d.name);
+        });
+    </script>
+</body>
+</html>
