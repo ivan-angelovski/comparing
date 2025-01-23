@@ -55,9 +55,14 @@
                 }))
             );
 
+            // Ensure all link references exist in nodes
+            const nodeIds = new Set(nodes.map(n => n.id));
+            const validLinks = links.filter(l => nodeIds.has(l.source) && nodeIds.has(l.target));
+
+            // Sankey input structure
             const sankeyData = {
-                nodes: nodes.map((n, i) => ({ ...n, index: i })),
-                links: links
+                nodes: nodes.map(n => ({ ...n, value: 1 })), // Add default value
+                links: validLinks
             };
 
             // Set up visualization dimensions
@@ -112,12 +117,4 @@
                 .attr("fill", d => d3.interpolateCool(Math.random()));
 
             node.append("text")
-                .attr("x", d => d.x0 < width / 2 ? sankey.nodeWidth() + 6 : -6)
-                .attr("y", d => (d.y1 - d.y0) / 2)
-                .attr("dy", "0.35em")
-                .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-                .text(d => d.name);
-        });
-    </script>
-</body>
-</html>
+                .attr("x", d => d.x0 < width / 2 ? sankey.nodeWidth() +
