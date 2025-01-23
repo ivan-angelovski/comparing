@@ -78,6 +78,20 @@
             .attr("width", width)
             .attr("height", height);
 
+        // Set the x positions: domains on the left, entities on the right
+        const domainX = 150;
+        const entityX = width - 150;
+
+        // Position nodes distinctly: domains on the left, entities on the right
+        nodes.forEach(node => {
+            if (node.group === "domain") {
+                node.x = domainX;
+            } else {
+                node.x = entityX;
+            }
+            node.y = Math.random() * height; // Randomly distribute nodes vertically
+        });
+
         // Create a force simulation
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id).distance(150))
@@ -110,12 +124,6 @@
             .attr("dx", 20)
             .attr("dy", 5)
             .text(d => d.name);
-
-        // Position nodes distinctly: domains on the left, entities on the right
-        nodes.forEach((node, index) => {
-            node.x = node.group === "domain" ? 150 : width - 150;
-            node.y = (index + 1) * (height / (nodes.length + 1));
-        });
 
         // Update the positions of links and nodes
         simulation.on("tick", () => {
